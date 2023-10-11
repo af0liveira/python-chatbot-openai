@@ -3,6 +3,7 @@ import os
 import openai
 import dotenv
 from time import sleep
+import tiktoken
 
 app = Flask(__name__)
 app.secret_key = 'alura'
@@ -26,7 +27,14 @@ def salva(nome_do_arquivo, conteudo):
     except IOError as e:
         print(f"Erro ao salvar arquivo: {e}")
 
+def conta_tokens(prompt):
+    codificador = tiktoken.encoding_for_model("gpt-3.5-turbo")
+    lista_de_tokens = codificador.encode(prompt)
+    contagem = len(lista_de_tokens)
+    return contagem
+
 dados_ecommerce = carrega('dados_ecommerce.txt')
+print(conta_tokens(dados_ecommerce))
 def bot(prompt,historico):
     maxima_repeticao = 1
     repeticao = 0
@@ -41,6 +49,10 @@ def bot(prompt,historico):
             ## Historico:
             {historico}
             """
+            tamanho_esperado_saida = 2000
+            total_de_tokens_modelo = 4000
+            if conta_tokens(prompt_do_sistema) >= total_de_tokens_modelo - tamanho_esperado_saida:
+                model = 'gpt-3.5-turbo-16k'
             response = openai.ChatCompletion.create(
                 messages=[
                     {
