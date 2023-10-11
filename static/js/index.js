@@ -15,7 +15,7 @@ async function enviarMensagem() {
     chat.appendChild(novaBolhaBot);
     vaiParaFinalDoChat();
     
-    // Envia requisição com a mensagem para a API do ChatBot
+// Envia requisição com a mensagem para a API do ChatBot
     const resposta = await fetch("http://127.0.0.1:5000/chat", {
         method: "POST",
         headers: {
@@ -23,9 +23,21 @@ async function enviarMensagem() {
         },
         body: JSON.stringify({'msg':mensagem}),
     });
-    const textoDaResposta = await resposta.text();
-    novaBolhaBot.innerHTML = textoDaResposta;
-    vaiParaFinalDoChat();
+
+    const decodificador = new TextDecoder();
+    const leitorDaResposta = resposta.body.getReader();
+    let respostaParcial = "";
+    while (true) {
+        // Aguarda e recebe o próximo pedaço da resposta da API
+        const { done: terminou, value: pedacoDaResposta } = await leitorDaResposta.read();
+        if (terminou) break;
+
+        // Concatena o novo pedaço da resposta com a resposta parcial e atualiza na tela
+        respostaParcial += decodificador.decode(pedacoDaResposta).replace(/\n/g, '<br>');
+        novaBolhaBot.innerHTML = respostaParcial;
+        vaiParaFinalDoChat();
+    }
+    
 }
 
 function criaBolhaUsuario() {

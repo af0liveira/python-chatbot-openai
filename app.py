@@ -1,4 +1,4 @@
-from flask import Flask,render_template, request
+from flask import Flask,render_template, request, Response
 import os
 import openai
 import dotenv
@@ -32,6 +32,7 @@ def bot(prompt):
                         "content": prompt
                     }
                 ],
+                stream = True,
                 temperature=1,
                 max_tokens=256,
                 top_p=1,
@@ -53,9 +54,15 @@ def home():
 @app.route("/chat", methods = ['POST'])
 def chat():
     prompt = request.json['msg']
-    resposta = bot(prompt = prompt)
-    texto_da_resposta = resposta.choices[0].message.content
-    return texto_da_resposta
+    return Response(trata_resposta(prompt), mimetype = 'text/event-stream')
+
+def trata_resposta(prompt):
+    resposta_parcial = ''
+    for resposta in bot(prompt):
+        pedaco_da_resposta = resposta.choices[0].delta.get('content','')
+        if len(pedaco_da_resposta):
+            resposta_parcial += pedaco_da_resposta
+            yield pedaco_da_resposta 
     
 if __name__ == "__main__":
     app.run(debug = True)
