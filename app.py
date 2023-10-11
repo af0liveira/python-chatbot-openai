@@ -33,8 +33,18 @@ def conta_tokens(prompt):
     contagem = len(lista_de_tokens)
     return contagem
 
+def limita_historico(historico,limite_maximo_de_tokens):
+    total_de_tokens = 0
+    historico_parcial = ''
+    for linha in reversed(historico.split('\n')):
+        tokens_da_linha = conta_tokens(linha)
+        total_de_tokens = total_de_tokens + tokens_da_linha
+        if (total_de_tokens > limite_maximo_de_tokens):
+            break
+        historico_parcial = linha + historico_parcial
+    return historico_parcial
+
 dados_ecommerce = carrega('dados_ecommerce.txt')
-print(conta_tokens(dados_ecommerce))
 def bot(prompt,historico):
     maxima_repeticao = 1
     repeticao = 0
@@ -49,10 +59,6 @@ def bot(prompt,historico):
             ## Historico:
             {historico}
             """
-            tamanho_esperado_saida = 2000
-            total_de_tokens_modelo = 4000
-            if conta_tokens(prompt_do_sistema) >= total_de_tokens_modelo - tamanho_esperado_saida:
-                model = 'gpt-3.5-turbo-16k'
             response = openai.ChatCompletion.create(
                 messages=[
                     {
@@ -94,12 +100,15 @@ def chat():
 
 def trata_resposta(prompt,historico,nome_do_arquivo):
     resposta_parcial = ''
-    for resposta in bot(prompt,historico):
+    limite_maximo_de_tokens = 2000
+    historico_parcial = limita_historico(historico,limite_maximo_de_tokens)
+    for resposta in bot(prompt,historico_parcial):
         pedaco_da_resposta = resposta.choices[0].delta.get('content','')
         if len(pedaco_da_resposta):
             resposta_parcial += pedaco_da_resposta
             yield pedaco_da_resposta 
     conteudo = f"""
+    Historico: {historico_parcial}
     Usuário: {prompt}
     IA: {resposta_parcial}    
     """
