@@ -113,6 +113,16 @@ def trata_resposta(prompt,historico,nome_do_arquivo):
     IA: {resposta_parcial}    
     """
     salva(nome_do_arquivo,conteudo)
-    
+
+@app.route('/limparhistorico', methods = ['POST'])
+def limpar_historico():
+    nome_do_arquivo = 'historico_ecomart'
+    if os.path.exists(nome_do_arquivo):
+        os.remove(nome_do_arquivo)
+        print("Arquivo removido!")
+    else: 
+        print("Não foi possivel remover esse arquivo")
+    return {}
+
 if __name__ == "__main__":
     app.run(debug = True)
