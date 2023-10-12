@@ -20,7 +20,7 @@ def bot(prompt,historico):
     repeticao = 0
     while True:
         try:
-            model='gpt-3.5-turbo'
+            model='gpt-4'
             prompt_do_sistema = f"""
             Você é um chatbot de atendimento a clientes de um e-commerce.
             Você não deve responder perguntas que não sejam dados do ecommerce informado!
