@@ -35,7 +35,7 @@ def bot(prompt):
                         "content": prompt,
                     }
                 ],
-                stream=False,
+                stream=True,
                 temperature=1,
                 max_tokens=256,
                 top_p=1,
@@ -54,14 +54,19 @@ def bot(prompt):
 def home():
     return render_template("index.html")
 
+def process_response(prompt):
+    partial_response = ""
+    response = bot(prompt)
+    for chunk in response:
+        chunk_text = chunk.choices[0].delta.content
+        if chunk_text:
+            partial_response += chunk_text
+            yield chunk_text
+
 @app.route("/chat", methods=['POST'])
 def chat():
     prompt = request.json['msg']
-    response = bot(prompt=prompt)
-    # TODO: Refactor the code so the next line doesn't raise an error if
-    # `response` is a string.
-    response_text = response.choices[0].message.content
-    return response_text
+    return Response(process_response(prompt), mimetype='text/event-stream')
 
 
 if __name__ == "__main__":

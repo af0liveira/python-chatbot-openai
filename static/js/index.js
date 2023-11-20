@@ -23,6 +23,21 @@ async function enviarMensagem() {
         },
         body: JSON.stringify({'msg':mensagem}),
     });
+
+    const decoder = new TextDecoder();
+    const responseReader = resposta.body.getReader();
+    let partialResponse = "";
+    while (true) {
+        // Wait and receive next response chunck from the API
+        const {done: completed, value: responseChunk} = await responseReader.read();
+        if (completed) break;
+
+        // Append new partial response and refresh screen
+        partialResponse += decoder.decode(responseChunk).replace(/\n/g, "<br>");
+        novaBolhaBot.innerHTML = partialResponse;
+        vaiParaFinalDoChat();
+    }
+
     const textoDaResposta = await resposta.text();
     novaBolhaBot.innerHTML = textoDaResposta;
     vaiParaFinalDoChat();
