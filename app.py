@@ -110,6 +110,16 @@ def chat():
     return Response(process_response(prompt, chat_history),
                     mimetype='text/event-stream')
 
+@app.route("/limparhistorico", methods=['POST'])
+def clear_history():
+    try:
+        os.remove(chat_file)
+    except FileNotFoundError as err:
+        print(f"Nothing to do! File {chat_file} not found.")
+    else:
+        print(f"File removed: {chat_file}")
+    return {}
+
 
 if __name__ == "__main__":
     app.run(debug = True)

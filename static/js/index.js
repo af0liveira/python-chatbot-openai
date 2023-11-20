@@ -59,6 +59,14 @@ function vaiParaFinalDoChat() {
     chat.scrollTop = chat.scrollHeight;
 }
 
+function clearChat(){
+    const limpar = fetch("http://127.0.0.1:5000/limparhistorico", {
+        method: "POST"
+    });
+    chat.innerHTML = "<p class='chat__bolha chat__bolha--bot'>Olá! Eu sou o assistente virtual da EcoMart ~<br/><br/>Como posso te ajudar?</p>";
+}
+
+
 botaoEnviar.addEventListener('click', enviarMensagem);
 input.addEventListener("keyup", function(event) {
     event.preventDefault();
