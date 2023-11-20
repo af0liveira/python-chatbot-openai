@@ -12,12 +12,14 @@ dotenv.load_dotenv()
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+chat_file = './chat_history.txt'
+
 # Carrega os dados do e-commerce
 with open('./dados_ecommerce.txt', 'rb') as fp:
     dados_ecommerce = fp.read()
 
 
-def bot(prompt):
+def bot(prompt, chat_history):
     max_repetition = 1
     repetition = 0
     while True:
@@ -26,8 +28,12 @@ def bot(prompt):
             system_prompt = f"""
             Você é um chatbot de atendimento a clientes de um e-commerce.
             Você não deve responder perguntas que não sejam dados do ecommerce informado!
+
             #### Dados do e-commerce
             {dados_ecommerce}
+
+            #### Histórico
+            {chat_history}
             """
             client = openai.OpenAI()
             response = client.chat.completions.create(
@@ -61,19 +67,28 @@ def bot(prompt):
 def home():
     return render_template("index.html")
 
-def process_response(prompt):
+def process_response(prompt, chat_history):
     partial_response = ""
-    response = bot(prompt)
+    response = bot(prompt, chat_history)
     for chunk in response:
         chunk_text = chunk.choices[0].delta.content
         if chunk_text:
             partial_response += chunk_text
             yield chunk_text
+    with open(chat_file, 'a') as fp:
+        fp.write(f"Usuaário: {prompt}\n")
+        fp.write(f"IA: {partial_response}\n")
 
 @app.route("/chat", methods=['POST'])
 def chat():
     prompt = request.json['msg']
-    return Response(process_response(prompt), mimetype='text/event-stream')
+    try:
+        with open(chat_file, 'rb') as fp:
+            chat_history = fp.read()
+    except FileNotFoundError as err:
+        chat_history = ""
+    return Response(process_response(prompt, chat_history),
+                    mimetype='text/event-stream')
 
 
 if __name__ == "__main__":
