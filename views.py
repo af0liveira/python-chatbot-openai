@@ -2,6 +2,7 @@ import os
 from app import app, bot
 from flask import render_template, request, Response
 from count_tokens import count_tokens
+from summarizer import summarizing
 
 chat_file = './chat_history.txt'
 
@@ -24,16 +25,15 @@ def constrain_chat_history(chat_history):
 
 def process_response(prompt, chat_history):
     partial_response = ""
-    partial_history = constrain_chat_history(chat_history)
-    print("PARTIAL", flush=True)
-    print(partial_history, flush=True)
-    response = bot(prompt, partial_history)
+    history_summary = summarizing(chat_history)
+    response = bot(prompt, history_summary)
     for chunk in response:
         chunk_text = chunk.choices[0].delta.content
         if chunk_text:
             partial_response += chunk_text
             yield chunk_text
-    with open(chat_file, 'a') as fp:
+    with open(chat_file, 'w') as fp:
+        fp.write(f"History: {history_summary}\n")
         fp.write(f"Usuário: {prompt}\n")
         fp.write(f"IA: {partial_response}\n")
 
