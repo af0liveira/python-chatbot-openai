@@ -12,6 +12,11 @@ dotenv.load_dotenv()
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+# Carrega os dados do e-commerce
+with open('./dados_ecommerce.txt', 'rb') as fp:
+    dados_ecommerce = fp.read()
+
+
 def bot(prompt):
     max_repetition = 1
     repetition = 0
@@ -21,6 +26,8 @@ def bot(prompt):
             system_prompt = f"""
             Você é um chatbot de atendimento a clientes de um e-commerce.
             Você não deve responder perguntas que não sejam dados do ecommerce informado!
+            #### Dados do e-commerce
+            {dados_ecommerce}
             """
             client = openai.OpenAI()
             response = client.chat.completions.create(
